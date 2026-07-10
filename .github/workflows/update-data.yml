@@ -1,0 +1,33 @@
+name: Uuenda suplusvee andmed
+
+on:
+  schedule:
+    - cron: '23 3,9,15,21 * * *'  # 4x päevas (UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Paigalda sõltuvused
+        run: pip install requests beautifulsoup4
+
+      - name: Kraabi värsked andmed
+        run: python scripts/update_data.py
+
+      - name: Commit'i muudatused
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git diff --cached --quiet || git commit -m "Uuenda suplusvee andmed ($(date -u +'%Y-%m-%d %H:%M UTC'))"
+          git push
